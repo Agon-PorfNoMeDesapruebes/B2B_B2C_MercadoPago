@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Mi Panel - Empresa{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="encabezado_panel d-flex justify-content-between align-items-center flex-wrap gap-3 mb-5">
+        <div>
+            <h1 class="fw-bold text-main mb-1">Hola, {{ current_user.username }} 👋</h1>
+            <p class="text-secondary mb-0">{{ current_user.company.name if current_user.company else 'Empresa' }}</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ url_for('companies.my_company') }}" class="btn btn-primary">
+                ⚙️ Mi Empresa
+            </a>
+            <a href="{{ url_for('companies.list_companies') }}" class="btn btn-outline-custom">
+                🏢 Ver otras empresas
+            </a>
+        </div>
+    </div>
+
+    <!-- Métricas (SQL real) -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="tarjeta_metrica">
+                <span class="icono_metrica">💰</span>
+                <span class="valor_metrica">${{ "{:,.2f}".format(metrics.total_cobrado).replace(",", "X").replace(".", ",").replace("X", ".") }}</span>
+                <span class="etiqueta_metrica">Total Cobrado</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="tarjeta_metrica">
+                <span class="icono_metrica">⏳</span>
+                <span class="valor_metrica">${{ "{:,.2f}".format(metrics.total_pendiente).replace(",", "X").replace(".", ",").replace("X", ".") }}</span>
+                <span class="etiqueta_metrica">Pendientes de Pago</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="tarjeta_metrica">
+                <span class="icono_metrica">📦</span>
+                <span class="valor_metrica">{{ metrics.total_pedidos }}</span>
+                <span class="etiqueta_metrica">Pedidos Totales</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="tarjeta_metrica tarjeta_metrica_critica">
+                <span class="icono_metrica">⚠️</span>
+                <span class="valor_metrica">{{ metrics.stock_bajo + metrics.stock_agotado }}</span>
+                <span class="etiqueta_metrica">Stock Bajo / Agotado</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones rápidas + Pedidos recientes -->
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="acciones_rapidas">
+                <h5 class="fw-bold text-main mb-3">Acciones Rápidas</h5>
+                <a href="{{ url_for('companies.my_company') }}#productos" class="boton_accion">
+                    <span>➕</span><span>Nuevo Producto</span>
+                </a>
+                <a href="{{ url_for('companies.my_company') }}" class="boton_accion">
+                    <span>📦</span><span>Gestionar Productos</span>
+                </a>
+                <a href="{{ url_for('companies.my_company') }}#datos" class="boton_accion">
+                    <span>✏️</span><span>Editar Datos Empresa</span>
+                </a>
+                <a href="{{ url_for('orders.my_sales') }}" class="boton_accion">
+                    <span>💰</span><span>Ver Mis Ventas</span>
+                </a>
+                <a href="{{ url_for('orders.my_purchases') }}" class="boton_accion">
+                    <span>🛍️</span><span>Mis Compras</span>
+                </a>
+                <a href="{{ url_for('companies.list_companies') }}" class="boton_accion">
+                    <span>🏢</span><span>Comprar a otras empresas</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="contenedor_pedidos">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                    <h3 class="fw-bold text-main mb-0">Ventas Recientes</h3>
+                    <a href="{{ url_for('orders.my_sales') }}" class="btn btn-sm btn-outline-custom">Ver todas</a>
+                </div>
+
+                {% if recent_orders %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Pedido</th>
+                                <th>Comprador</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-center">Estado</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td class="fw-bold">#{{ order.id }}</td>
+                                <td>
+                                    <div class="fw-medium">{{ order.buyer.username }}</div>
+                                    <small class="text-secondary">{{ order.buyer.email }}</small>
+                                </td>
+                                <td class="text-end fw-bold">${{ "{:,.2f}".format(order.total).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+                                <td class="text-center">
+                                    <span class="etiqueta_estado etiqueta_{{ order.status.value.lower() }}">{{ order.status.value }}</span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('orders.order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline-primary">Ver</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <div class="display-1 mb-3">📋</div>
+                    <h4 class="fw-bold text-main">Sin ventas aún</h4>
+                    <p class="text-secondary">Cuando vendás, verás tus pedidos acá.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script>
+// Pasar métricas al template (se inyecta via context processor o view)
+// Aquí podríamos cargar via AJAX si se prefiere
+</script>
+{% endblock %}

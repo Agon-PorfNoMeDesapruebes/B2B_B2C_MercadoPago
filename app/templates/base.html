@@ -1,0 +1,219 @@
+{# =============================================================================
+   Template base - B2B_B2C
+   Mantiene la estética actual: modo oscuro persistente, transición circular, blobs.
+   ============================================================================= #}
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}B2B_B2C - Marketplace Multiempresa{% endblock %}</title>
+
+    <!-- Bootstrap 5.3 CSS (local con fallback CDN) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+          crossorigin="anonymous" media="print" onload="this.media='all'">
+
+    <!-- CSS personalizado -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Favicon placeholder -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💳</text></svg>">
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body id="cuerpo_aplicacion" data-theme="{{ 'dark' if (session.get('theme') == 'dark' or not session.get('theme') and 'dark' == 'dark') else 'light' }}">
+
+    {# =============================================================================
+       Elementos decorativos globales (heredados en todas las páginas)
+       ============================================================================= #}
+    <div class="blob mancha_violeta" aria-hidden="true"></div>
+    <div class="blob mancha_esmeralda" aria-hidden="true"></div>
+    <div class="blob mancha_cian" aria-hidden="true"></div>
+
+    {# Capas de fondo para modo oscuro y transición circular #}
+    <div class="capa_fondo" aria-hidden="true"></div>
+    <div id="circulo_transicion_tema" aria-hidden="true"></div>
+
+    {# =============================================================================
+       Navbar principal
+       ============================================================================= #}
+    <nav class="navbar navbar-expand-lg navbar-light shadow-sm mb-4" role="navigation" aria-label="Navegación principal">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{{ url_for('main.index') }}" aria-label="B2B_B2C - Inicio">
+                💳 B2B<wbr>/B2C
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Alternar navegación">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.index') }}">Inicio</a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.dashboard') }}">Mi Panel</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('companies.list_companies') }}">Empresas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{{ url_for('cart.view_cart') }}">
+                            🛒 Carrito
+                            {% set cart_count = session.get('cart', {}) | length %}
+                            {% if cart_count > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
+                                {{ cart_count }}
+                                <span class="visually-hidden">productos en el carrito</span>
+                            </span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <ul class="navbar-nav ms-auto align-items-center">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                           aria-expanded="false" aria-label="Menú de usuario">
+                            {{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            {% if current_user.is_empresa %}
+                            <li><a class="dropdown-item" href="{{ url_for('companies.my_company') }}">Mi Empresa</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('orders.my_purchases') }}">Mis Compras</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('orders.my_sales') }}">Mis Ventas</a></li>
+                            {% else %}
+                            <li><a class="dropdown-item" href="{{ url_for('orders.my_purchases') }}">Mis Compras</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form action="{{ url_for('auth.logout') }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="dropdown-item text-danger" aria-label="Cerrar sesión">
+                                        Cerrar Sesión
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">Ingresar</a>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-primary btn-sm" href="{{ url_for('auth.register_choice') }}">Crear Cuenta</a>
+                    </li>
+                    {% endif %}
+
+                    {# Botón de modo oscuro #}
+                    <li class="nav-item ms-lg-3">
+                        <button id="cambio_tema" class="btn btn-link p-0 boton_cambio_tema" aria-label="Alternar modo oscuro"
+                                title="Alternar modo oscuro">
+                            <span id="icono_tema" aria-hidden="true">🌙</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    {# =============================================================================
+       Contenido principal - Flash messages
+       ============================================================================= #}
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages" role="region" aria-label="Notificaciones" aria-live="polite">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show"
+                     role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar notificación"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <main role="main">
+        {% block content %}{% endblock %}
+    </main>
+
+    {# =============================================================================
+       Footer
+       ============================================================================= #}
+    <footer class="py-4 mt-5" role="contentinfo">
+        <div class="container text-center text-muted">
+            <small>&copy; 2026 B2B_B2C - Marketplace Multiempresa. Trabajo Práctico Instituto Técnico.</small>
+        </div>
+    </footer>
+
+    {# =============================================================================
+       Scripts
+       ============================================================================= #}
+    <!-- Bootstrap JS (local con fallback CDN) -->
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
+
+    <!-- Lógica del modo oscuro con persistencia y transición circular -->
+    <script>
+        (function() {
+            'use strict';
+
+            const btn = document.getElementById('cambio_tema');
+            const icon = document.getElementById('icono_tema');
+            const circle = document.getElementById('circulo_transicion_tema');
+            const body = document.getElementById('cuerpo_aplicacion');
+
+            if (!btn || !icon || !circle || !body) return;
+
+            // --- PERSISTENCIA: Cargar tema al iniciar ---
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            body.setAttribute('data-theme', savedTheme);
+            icon.innerText = savedTheme === 'dark' ? '☀️' : '🌙';
+
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                // Iniciar la animación de expansión
+                circle.classList.add('active');
+
+                // Cambiar el tema en el punto máximo de la expansión
+                setTimeout(function() {
+                    const isDark = body.getAttribute('data-theme') === 'dark';
+                    const newTheme = isDark ? 'light' : 'dark';
+
+                    body.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    icon.innerText = newTheme === 'dark' ? '☀️' : '🌙';
+
+                    // Sincronizar con sesión del servidor (opcional, para SSR)
+                    fetch('{{ url_for("main.set_theme") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ theme: newTheme })
+                    }).catch(function() { /* silencioso */ });
+
+                    // Colapsar el círculo después del cambio
+                    setTimeout(function() {
+                        circle.classList.remove('active');
+                    }, 100);
+                }, 400); // Mitad de la transición de 0.8s
+            });
+        })();
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

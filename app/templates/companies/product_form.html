@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{{ action|capitalize }} Producto - B2B_B2C{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card tarjeta_caracteristica shadow-sm">
+                <div class="card-body p-5">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="fw-bold text-main mb-0">{{ action|capitalize }} Producto</h2>
+                        <a href="{{ url_for('companies.my_company') }}" class="btn btn-outline-secondary btn-sm">← Volver</a>
+                    </div>
+
+                    <form method="POST" action="" novalidate>
+                        {{ form.hidden_tag() }}
+                        {{ form.expected_stock }}
+
+                        <div class="grupo_formulario_personalizado">
+                            <label class="etiqueta_formulario_personalizada">{{ form.name.label.text }}</label>
+                            {{ form.name(class="control_formulario_personalizado", placeholder="Ej: Laptop Gaming X1") }}
+                            {% for error in form.name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+
+                        <div class="grupo_formulario_personalizado">
+                            <label class="etiqueta_formulario_personalizada">{{ form.description.label.text }}</label>
+                            {{ form.description(class="control_formulario_personalizado", rows="4", placeholder="Describí el producto...") }}
+                            {% for error in form.description.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="grupo_formulario_personalizado">
+                                    <label class="etiqueta_formulario_personalizada">{{ form.price.label.text }}</label>
+                                    {{ form.price(class="control_formulario_personalizado", placeholder="120000.00", step="0.01", min="0") }}
+                                    {% for error in form.price.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                    <div class="form-text">En ARS. Decimales con punto.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="grupo_formulario_personalizado">
+                                    <label class="etiqueta_formulario_personalizada">{{ form.stock.label.text }}</label>
+                                    {{ form.stock(class="control_formulario_personalizado", placeholder="10", min="0") }}
+                                    {% for error in form.stock.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grupo_formulario_personalizado">
+                            <label class="etiqueta_formulario_personalizada">{{ form.image_url.label.text }}</label>
+                            {{ form.image_url(class="control_formulario_personalizado", placeholder="https://ejemplo.com/foto.jpg") }}
+                            {% for error in form.image_url.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                            <div class="form-text">URL de imagen pública (opcional)</div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                            <a href="{{ url_for('companies.my_company') }}" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

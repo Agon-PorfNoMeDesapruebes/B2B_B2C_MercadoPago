@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}{{ company.name }} - B2B_B2C{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <!-- Header empresa -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <nav aria-label="breadcrumb" class="mb-2">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('companies.list_companies') }}">Empresas</a></li>
+                    <li class="breadcrumb-item active">{{ company.name }}</li>
+                </ol>
+            </nav>
+            <h1 class="fw-bold text-main display-5 mb-1">{{ company.name }}</h1>
+            <div class="d-flex flex-wrap gap-3 text-secondary small">
+                <span>CUIT: {{ company.formatted_cuit }}</span>
+                {% if company.description %}
+                <span>{{ company.description }}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% if es_dueno %}
+        <a href="{{ url_for('companies.my_company') }}" class="btn btn-primary">⚙️ Gestionar</a>
+        {% endif %}
+    </div>
+
+    {% if company.logo_url %}
+    <div class="text-center mb-4">
+        <img src="{{ company.logo_url }}" alt="{{ company.name }}" class="img-fluid rounded shadow" style="max-height: 200px;">
+    </div>
+    {% endif %}
+
+    <!-- Buscador y paginación productos -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <form method="GET" class="d-flex gap-2 flex-1" style="max-width: 400px;">
+            <input type="search" name="q" class="form-control control_formulario_personalizado" placeholder="Buscar productos..." value="{{ search_query }}">
+            <button type="submit" class="btn btn-outline-custom">🔍</button>
+            {% if search_query %}
+            <a href="{{ url_for('companies.view_company', company_id=company.id) }}" class="btn btn-outline-secondary">✕</a>
+            {% endif %}
+        </form>
+        {% if es_dueno %}
+        <a href="{{ url_for('companies.new_product') }}" class="btn btn-primary">➕ Nuevo Producto</a>
+        {% endif %}
+    </div>
+
+    <!-- Grilla productos -->
+    {% if products.items %}
+    <div class="row g-4">
+        {% for product in products.items %}
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card producto-card tarjeta_caracteristica h-100 shadow-sm">
+                <!-- Imagen -->
+                <div class="position-relative">
+                    {% if product.image_url %}
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}" class="producto-imagen w-100">
+                    {% else %}
+                    <div class="producto-placeholder w-100">📦</div>
+                    {% endif %}
+
+                    <!-- Badge stock -->
+                    <div class="position-absolute top-0 end-0 m-2">
+                        <span class="stock-badge stock-{{ product.stock_status }}">
+                            {% if product.stock_status == 'ok' %}✓ Stock: {{ product.stock }}
+                            {% elif product.stock_status == 'low' %}⚠ Pocas: {{ product.stock }}
+                            {% else %}✗ Agotado{% endif %}
+                        </span>
+                    </div>
+
+                    {% if es_dueno and not product.is_active %}
+                    <div class="position-absolute top-0 start-0 m-2">
+                        <span class="badge bg-secondary">Desactivado</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="card-body p-3 d-flex flex-column">
+                    <h6 class="fw-bold text-main mb-1 text-truncate">{{ product.name }}</h6>
+                    {% if product.description %}
+                    <p class="text-secondary small text-truncate-2 flex-grow-1 mb-2">{{ product.description }}</p>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold text-main fs-5">${{ "{:,.2f}".format(product.price).replace(",", "X").replace(".", ",").replace("X", ".") }}</span>
+                        {% if not es_dueno %}
+                        <span class="badge rounded-pill {% if product.is_available %}bg-success{% else %}bg-danger{% endif %}">
+                            {% if product.is_available %}Disponible{% else %}Sin stock{% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    {% if es_dueno %}
+                    <!-- Controles dueño -->
+                    <div class="btn-group w-100 gap-1" role="group">
+                        <a href="{{ url_for('companies.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-primary" title="Editar">✏️</a>
+                        <form action="{{ url_for('companies.toggle_product', product_id=product.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-sm {% if product.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}" title="{% if product.is_active %}Desactivar{% else %}Activar{% endif %}">
+                                {% if product.is_active %}👁️‍🗨️{% else %}✅{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <!-- Botón compra visitante -->
+                    {% if product.is_available %}
+                    <form action="{{ url_for('cart.add_to_cart', product_id=product.id) }}" method="POST" class="w-100">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-primary w-100">Agregar al carrito</button>
+                    </form>
+                    {% else %}
+                    <button class="btn btn-secondary w-100" disabled>Sin stock</button>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Paginación -->
+    {% if products.pages > 1 %}
+    <nav aria-label="Paginación productos" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if products.has_prev %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('companies.view_company', company_id=company.id, page=products.prev_num, q=search_query) }}">Anterior</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+            {% endif %}
+            {% for page_num in products.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == products.page %}
+                    <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                    {% else %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('companies.view_company', company_id=company.id, page=page_num, q=search_query) }}">{{ page_num }}</a></li>
+                    {% endif %}
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+            {% endfor %}
+            {% if products.has_next %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('companies.view_company', company_id=company.id, page=products.next_num, q=search_query) }}">Siguiente</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-5">
+        <div class="display-1 mb-3">📦</div>
+        <h4 class="fw-bold text-main">{% if search_query %}No hay productos que coincidan{% else %}Esta empresa no tiene productos publicados{% endif %}</h4>
+        {% if es_dueno %}
+        <a href="{{ url_for('companies.new_product') }}" class="btn btn-primary mt-3">Publicar mi primer producto</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

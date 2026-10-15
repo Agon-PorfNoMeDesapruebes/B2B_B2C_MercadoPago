@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Carrito Vacío - B2B_B2C{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="text-center py-5">
+        <div class="display-1 mb-4">🛒</div>
+        <h2 class="fw-bold text-main">Tu carrito está vacío</h2>
+        <p class="text-secondary mb-4">Agregá productos de las empresas para empezar tu pedido.</p>
+        <a href="{{ url_for('companies.list_companies') }}" class="btn btn-primary btn-lg">Ir a empresas</a>
+    </div>
+</div>
+{% endblock %}

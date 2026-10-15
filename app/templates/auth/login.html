@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Iniciar Sesión - B2B_B2C{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="contenedor_auth fade-in-right">
+        <!-- Lado Visual -->
+        <div class="visual_auth">
+            <div class="display-1 mb-4 floating">🔐</div>
+            <h1 class="fw-bold mb-3">Bienvenido de Nuevo</h1>
+            <p class="lead opacity-75">Accedé a tu panel y gestioná tu negocio.</p>
+        </div>
+
+        <!-- Lado Formulario -->
+        <div class="seccion_formulario_auth">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold text-main">Iniciar Sesión</h2>
+                <p class="text-secondary">Ingresá tus credenciales</p>
+            </div>
+
+            <form method="POST" action="" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="grupo_formulario_personalizado">
+                    <label class="etiqueta_formulario_personalizada">{{ form.email.label.text }}</label>
+                    {{ form.email(class="control_formulario_personalizado", placeholder="tu@correo.com") }}
+                    {% for error in form.email.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="grupo_formulario_personalizado">
+                    <label class="etiqueta_formulario_personalizada">{{ form.password.label.text }}</label>
+                    {{ form.password(class="control_formulario_personalizado", placeholder="••••••••") }}
+                    {% for error in form.password.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="grupo_formulario_personalizado d-flex align-items-center justify-content-between">
+                    <div class="form-check">
+                        {{ form.remember(class="form-check-input", id="remember") }}
+                        {{ form.remember.label(class="form-check-label", for_="remember") }}
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    {{ form.submit(class="btn btn-primary btn-lg") }}
+                </div>
+            </form>
+
+            <div class="text-center mt-4">
+                <p class="text-secondary">¿No tenés cuenta? <a href="{{ url_for('auth.register_choice') }}" class="text-main fw-bold text-decoration-none">Registrate acá</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

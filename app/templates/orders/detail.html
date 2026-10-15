@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Pedido #{{ order.id }} - B2B_B2C{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <nav aria-label="breadcrumb" class="mb-2">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item">
+                        {% if is_buyer %}<a href="{{ url_for('orders.my_purchases') }}">Mis Compras</a>{% else %}<a href="{{ url_for('orders.my_sales') }}">Mis Ventas</a>{% endif %}
+                    </li>
+                    <li class="breadcrumb-item active">#{{ order.id }}</li>
+                </ol>
+            </nav>
+            <h1 class="fw-bold text-main display-5 mb-1">Pedido #{{ order.id }}</h1>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <span class="etiqueta_estado etiqueta_{{ order.status.value.lower() }} align-self-center fs-6">{{ order.status.value }}</span>
+            {% if is_buyer and order.status.value == 'PENDIENTE' and order.can_pay %}
+            <a href="{{ url_for('payments.bricks_checkout', order_id=order.id) }}" class="btn btn-success">💳 Pagar</a>
+            {% endif %}
+            {% if (is_buyer or is_seller) and order.status.value == 'PENDIENTE' %}
+            <form action="{{ url_for('payments.verify_payment', order_id=order.id) }}" method="POST" class="d-inline">
+                <button type="submit" class="btn btn-outline-primary">🔄 Verificar en MP</button>
+            </form>
+            {% endif %}
+            {% if is_buyer and order.can_cancel %}
+            <form action="{{ url_for('orders.cancel_order_route', order_id=order.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Cancelar pedido y devolver stock?');">
+                <button type="submit" class="btn btn-outline-danger">✖ Cancelar</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Info principal -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-4">
+            <div class="card tarjeta_caracteristica h-100">
+                <div class="card-body">
+                    <h5 class="fw-bold text-main mb-3">Información del Pedido</h5>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5 text-secondary">ID</dt>
+                        <dd class="col-sm-7 fw-bold">#{{ order.id }}</dd>
+
+                        <dt class="col-sm-5 text-secondary">Fecha</dt>
+                        <dd class="col-sm-7">{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</dd>
+
+                        <dt class="col-sm-5 text-secondary">Expira</dt>
+                        <dd class="col-sm-7">{{ order.expires_at.strftime('%d/%m/%Y %H:%M') }}</dd>
+
+                        <dt class="col-sm-5 text-secondary">Referencia MP</dt>
+                        <dd class="col-sm-7"><code class="small">{{ order.external_reference }}</code></dd>
+
+                        {% if is_buyer %}
+                        <dt class="col-sm-5 text-secondary">Mi rol</dt>
+                        <dd class="col-sm-7"><span class="badge bg-primary">Comprador</span></dd>
+                        <dt class="col-sm-5 text-secondary">Empresa</dt>
+                        <dd class="col-sm-7">{{ order.company.name }}</dd>
+                        {% else %}
+                        <dt class="col-sm-5 text-secondary">Comprador</dt>
+                        <dd class="col-sm-7">{{ order.buyer.username }} ({{ order.buyer.email }})</dd>
+                        <dt class="col-sm-5 text-secondary">Tipo cuenta</dt>
+                        <dd class="col-sm-7">{{ order.buyer_type_snapshot }}</dd>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card tarjeta_caracteristica h-100">
+                <div class="card-body">
+                    <h5 class="fw-bold text-main mb-3">Totales</h5>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-6 text-secondary">Subtotal items</dt>
+                        <dd class="col-sm-6 fw-bold text-end">${{ "{:,.2f}".format(order.total).replace(",", "X").replace(".", ",").replace("X", ".") }}</dd>
+
+                        <dt class="col-sm-6 text-secondary">Total</dt>
+                        <dd class="col-sm-6 fw-bold text-end fs-5 text-primary">${{ "{:,.2f}".format(order.total).replace(",", "X").replace(".", ",").replace("X", ".") }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card tarjeta_caracteristica h-100">
+                <div class="card-body">
+                    <h5 class="fw-bold text-main mb-3">Pagos</h5>
+                    {% if payments %}
+                    <div class="table-responsive small">
+                        <table class="table table-sm mb-0">
+                            <thead><tr><th>ID MP</th><th>Estado</th><th class="text-end">Monto</th></tr></thead>
+                            <tbody>
+                                {% for p in payments %}
+                                <tr>
+                                    <td><code>{{ p.mp_payment_id[:12] }}...</code></td>
+                                    <td><span class="badge bg-{% if p.status.value == 'approved' %}success{% elif p.status.value == 'pending' %}warning text-dark{% elif p.status.value == 'rejected' %}danger{% else %}secondary{% endif %}">{{ p.status.value }}</span></td>
+                                    <td class="text-end fw-bold">${{ "{:,.2f}".format(p.amount).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-secondary mb-0">Sin intentos de pago aún.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items -->
+    <div class="card tarjeta_caracteristica shadow-sm">
+        <div class="card-header bg-transparent">
+            <h5 class="fw-bold text-main mb-0">Items del Pedido</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-center">Cant.</th>
+                            <th class="text-end">Precio Unit.</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    {% if item.product and item.product.image_url %}
+                                    <img src="{{ item.product.image_url }}" alt="" class="rounded" style="width: 48px; height: 48px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">📦</div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-medium">{{ item.product_name_snapshot }}</div>
+                                        {% if item.product %}
+                                        <small class="text-secondary">Stock actual: {{ item.product.stock }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center fw-bold">{{ item.quantity }}</td>
+                            <td class="text-end">${{ "{:,.2f}".format(item.unit_price_snapshot).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+                            <td class="text-end fw-bold">${{ "{:,.2f}".format(item.subtotal).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

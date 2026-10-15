@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Pagar Múltiples Pedidos - B2B_B2C{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
+        <h1 class="fw-bold text-main display-5 mb-0">Confirmar y Pagar</h1>
+        <a href="{{ url_for('cart.view_cart') }}" class="btn btn-outline-secondary">← Volver al carrito</a>
+    </div>
+
+    <div class="alert alert-info">
+        <strong>Tenés {{ orders|length }} pedidos pendientes</strong> (uno por cada empresa del carrito).
+        Se procesarán por separado en Mercado Pago.
+    </div>
+
+    {% for order in orders %}
+    <div class="card tarjeta_caracteristica shadow-sm mb-4">
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold text-main mb-0">{{ order.company.name }}</h5>
+            <span class="badge bg-primary fs-6">${{ "{:,.2f}".format(order.total).replace(",", "X").replace(".", ",").replace("X", ".") }}</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-center">Cant.</th>
+                            <th class="text-end">Precio</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items %}
+                        <tr>
+                            <td>{{ item.product_name_snapshot }}</td>
+                            <td class="text-center">{{ item.quantity }}</td>
+                            <td class="text-end">${{ "{:,.2f}".format(item.unit_price_snapshot).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+                            <td class="text-end fw-bold">${{ "{:,.2f}".format(item.subtotal).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+                <a href="{{ url_for('payments.bricks_checkout', order_id=order.id) }}" class="btn btn-primary btn-lg">
+                    💳 Pagar este pedido (${{ "{:,.2f}".format(order.total).replace(",", "X").replace(".", ",").replace("X", ".") }})
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="text-center text-secondary">
+        <p>Cada pago se procesa independientemente. Podés pagarlos en el orden que quieras.</p>
+    </div>
+</div>
+{% endblock %}

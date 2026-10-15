@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}B2B_B2C - Marketplace Multiempresa{% endblock %}
+{% block content %}
+<!-- Elementos decorativos hero -->
+<div class="blob mancha_1" style="background: radial-gradient(circle, rgba(112,0,255,0.15) 0%, transparent 70%); top: -5%; left: -5%; width: 500px; height: 500px; position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; pointer-events: none;"></div>
+<div class="blob mancha_2" style="background: radial-gradient(circle, rgba(0,245,160,0.15) 0%, transparent 70%); bottom: -5%; right: -5%; width: 600px; height: 600px; position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; pointer-events: none;"></div>
+<div class="blob mancha_3" style="background: radial-gradient(circle, rgba(0,229,255,0.12) 0%, transparent 70%); top: 30%; right: 5%; width: 350px; height: 350px; position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; pointer-events: none; opacity: 0.5;"></div>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 text-center text-lg-start">
+                <h1 class="display-3 fw-bold text-main mb-3 titulo_hero_inicio">
+                    Marketplace <span class="texto_violeta">Multiempresa</span>
+                </h1>
+                <p class="lead text-secondary mb-4 fs-4">
+                    Empresas y clientes compran y venden en un solo lugar.
+                    Pagos reales con Mercado Pago (sandbox). Stock atómico. Cero simulación.
+                </p>
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center justify-content-lg-start">
+                    {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('auth.register_choice') }}" class="btn btn-primary btn-lg px-4">Empezar ahora</a>
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-custom btn-lg px-4">Ingresar</a>
+                    {% else %}
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-lg px-4">Ir a mi Panel</a>
+                        <a href="{{ url_for('companies.list_companies') }}" class="btn btn-outline-custom btn-lg px-4">Ver empresas</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="tarjeta_hero text-center">
+                    <div class="display-1 mb-4 floating">💳</div>
+                    <h3 class="fw-bold">Flujo Real</h3>
+                    <p class="opacity-75 mb-4">Carrito multi-empresa → Pedidos por vendedor → Checkout Pro → Webhook confirmado</p>
+                    <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+                        <span class="badge rounded-pill bg-warning text-dark px-3 py-2">Carrito</span>
+                        <span class="text-white">→</span>
+                        <span class="badge rounded-pill bg-info px-3 py-2">Pedidos</span>
+                        <span class="text-white">→</span>
+                        <span class="badge rounded-pill bg-primary px-3 py-2">MP Checkout</span>
+                        <span class="text-white">→</span>
+                        <span class="badge rounded-pill bg-success px-3 py-2">Pagado</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold display-5 text-main">¿Cómo funciona?</h2>
+            <p class="text-secondary fs-5">Diseñado para aprender haciendo, sin datos falsos</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card tarjeta_caracteristica h-100 shadow-sm p-4 text-center">
+                    <span class="icono_caracteristica">🏢</span>
+                    <h4 class="fw-bold text-main">Empresas venden</h4>
+                    <p class="text-secondary">Cada empresa publica sus productos, gestiona stock y ve sus ventas en tiempo real.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card tarjeta_caracteristica h-100 shadow-sm p-4 text-center">
+                    <span class="icono_caracteristica">🛒</span>
+                    <h4 class="fw-bold text-main">Carrito inteligente</h4>
+                    <p class="text-secondary">Mezcla productos de varias empresas. Al confirmar, se genera un pedido por vendedor.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card tarjeta_caracteristica h-100 shadow-sm p-4 text-center">
+                    <span class="icono_caracteristica">💰</span>
+                    <h4 class="fw-bold text-main">Pago real (sandbox)</h4>
+                    <p class="text-secondary">Mercado Pago Checkout Pro con webhook. Solo se marca pagado cuando MP lo confirma.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card tarjeta_caracteristica h-100 shadow-sm p-4 text-center">
+                    <span class="icono_caracteristica">🔒</span>
+                    <h4 class="fw-bold text-main">Stock atómico</h4>
+                    <p class="text-secondary">UPDATE condicional en BD. Sin negativos aunque compren 2 a la vez.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card tarjeta_caracteristica h-100 shadow-sm p-4 text-center">
+                    <span class="icono_caracteristica">📋</span>
+                    <h4 class="fw-bold text-main">Comprobantes reales</h4>
+                    <p class="text-secondary">Cada pedido tiene items, pagos, estados y trazabilidad completa.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card tarjeta_caracteristica h-100 shadow-sm p-4 text-center">
+                    <span class="icono_caracteristica">⚡</span>
+                    <h4 class="fw-bold text-main">Reglas de negocio</h4>
+                    <p class="text-secondary">Mínimo 50 u. para empresas, 1 u. para clientes. No compra propia. Expiración 30 min.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-light" data-theme="dark" style="--bs-bg-opacity: .05;">
+    <div class="container text-center">
+        <h2 class="fw-bold display-5 text-main mb-3">Listo para probar</h2>
+        <p class="text-secondary mb-4">Creá tu cuenta en 30 segundos y empezá a operar</p>
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('auth.register_choice') }}" class="btn btn-primary btn-lg px-5">Crear mi cuenta gratis</a>
+        {% else %}
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-lg px-5">Ir a mi Panel</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

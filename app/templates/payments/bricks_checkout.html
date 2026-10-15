@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Pagar Pedido #{{ order.id }} - B2B_B2C{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <!-- Resumen del pedido -->
+      <div class="card tarjeta_caracteristica shadow-sm mb-4">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold text-main mb-0">Pedido #{{ order.id }}</h4>
+            <span class="badge bg-primary fs-6">${{ order.formatted_total }}</span>
+          </div>
+          <div class="row g-2 text-secondary small">
+            <div class="col-6"><strong>Empresa:</strong> {{ order.company.name }}</div>
+            <div class="col-6"><strong>Items:</strong> {{ order.items|length }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Checkout Bricks Container -->
+      <div class="card tarjeta_caracteristica shadow-sm">
+        <div class="card-body p-4">
+          <h5 class="fw-bold text-main mb-3">Pago seguro con Mercado Pago</h5>
+          
+          <div id="payment_brick_container"></div>
+          
+          <div id="bricks_status" class="mt-3 d-none">
+            <div class="alert alert-info" id="status_msg"></div>
+            <div class="d-flex gap-2" id="status_actions"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Link de fallback -->
+      <div class="text-center mt-3">
+        <a href="{{ url_for('orders.order_detail', order_id=order.id) }}" class="text-secondary text-decoration-none">
+          ← Volver al detalle del pedido
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Mercado Pago SDK v2 -->
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const mp = new MercadoPago('{{ mp_public_key }}', {
+      locale: 'es-AR'
+    });
+
+    const bricks = mp.bricks();
+    
+    // Email del comprador de prueba (solo en sandbox)
+    const testBuyerEmail = '{{ test_buyer_email }}';
+    
+    // Renderizar Payment Brick
+    bricks.create('payment', 'payment_brick_container', {
+      initialization: {
+        amount: {{ order.total }},
+        preferenceId: '{{ preference_id }}',
+        {% if test_buyer_email %}
+        payer: {
+          email: '{{ test_buyer_email }}'
+        },
+        {% endif %}
+      },
+      customization: {
+        visual: {
+          style: {
+            theme: 'default'
+          }
+        },
+        paymentMethods: {
+          creditCard: 'all',
+          debitCard: 'all',
+          ticket: 'all',
+        }
+      },
+      callbacks: {
+        onReady: () => {
+          console.log('Brick listo');
+          document.getElementById('bricks_status').classList.remove('d-none');
+          document.getElementById('status_msg').textContent = 'Formulario listo. Ingresá los datos de tu tarjeta.';
+          document.getElementById('status_msg').className = 'alert alert-info';
+        },
+        onSubmit: async ({selectedPaymentMethod, formData}) => {
+          // Deshabilitar botón mientras procesa
+          document.getElementById('status_msg').textContent = 'Procesando pago...';
+          document.getElementById('status_msg').className = 'alert alert-info';
+          
+          try {
+            // Enviar datos a tu backend para crear el pago en MP
+            const response = await fetch('{{ url_for("payments.bricks_submit") }}', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+              },
+              body: JSON.stringify({
+                formData: formData,
+                preferenceId: '{{ preference_id }}'
+              })
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'approved') {
+              document.getElementById('status_msg').textContent = '✅ ¡Pago aprobado! Redirigiendo...';
+              document.getElementById('status_msg').className = 'alert alert-success';
+              setTimeout(() => window.location.href = '{{ url_for("orders.order_detail", order_id=order.id) }}', 1500);
+            } else if (result.status === 'pending') {
+              document.getElementById('status_msg').textContent = '⏳ Pago pendiente. Completá el pago en efectivo.';
+              document.getElementById('status_msg').className = 'alert alert-warning';
+            } else if (result.status === 'rejected') {
+              document.getElementById('status_msg').textContent = '❌ Pago rechazado: ' + (result.reason || 'Intenta con otra tarjeta');
+              document.getElementById('status_msg').className = 'alert alert-danger';
+            } else {
+              throw new Error(result.message || 'Error desconocido');
+            }
+          } catch (error) {
+            document.getElementById('status_msg').textContent = '❌ Error: ' + error.message;
+            document.getElementById('status_msg').className = 'alert alert-danger';
+          }
+        },
+        onError: (error) => {
+          console.error('Brick error:', error);
+          document.getElementById('status_msg').textContent = '❌ Error en el formulario: ' + error.message;
+          document.getElementById('status_msg').className = 'alert alert-danger';
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

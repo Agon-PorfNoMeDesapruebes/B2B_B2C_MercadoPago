@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Empresas - B2B_B2C{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
+        <div>
+            <h1 class="fw-bold text-main display-5 mb-1">Empresas del Marketplace</h1>
+            <p class="text-secondary">Explorá los sectores y sus productos</p>
+        </div>
+        <form method="GET" class="d-flex gap-2">
+            <input type="search" name="q" class="form-control control_formulario_personalizado" style="width: 280px;" placeholder="Buscar empresa..." value="{{ search_query }}">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            {% if search_query %}
+            <a href="{{ url_for('companies.list_companies') }}" class="btn btn-outline-secondary">Limpiar</a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if companies_data %}
+    <div class="row g-4">
+        {% for data in companies_data %}
+        <div class="col-xl-4 col-lg-6">
+            <div class="card tarjeta_caracteristica h-100 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h4 class="fw-bold text-main mb-1">{{ data.company.name }}</h4>
+                            <small class="text-secondary">{{ data.company.formatted_cuit }}</small>
+                        </div>
+                        {% if data.company.logo_url %}
+                        <img src="{{ data.company.logo_url }}" alt="" class="rounded" style="width: 60px; height: 60px; object-fit: cover;">
+                        {% endif %}
+                    </div>
+
+                    {% if data.company.description %}
+                    <p class="text-secondary small text-truncate-2 mb-3">{{ data.company.description }}</p>
+                    {% endif %}
+
+                    <!-- Preview productos -->
+                    {% if data.preview_products %}
+                    <div class="row g-2 mb-3">
+                        {% for product in data.preview_products %}
+                        <div class="col-6">
+                            <div class="bg-light rounded p-2 text-center h-100">
+                                {% if product.image_url %}
+                                <img src="{{ product.image_url }}" alt="" class="img-fluid rounded mb-1" style="height: 60px; object-fit: cover;">
+                                {% else %}
+                                <div class="producto-placeholder" style="height: 60px; font-size: 1.5rem;">📦</div>
+                                {% endif %}
+                                <div class="fw-medium small text-truncate">{{ product.name }}</div>
+                                <div class="text-primary fw-bold small">${{ "{:,.2f}".format(product.price).replace(",", "X").replace(".", ",").replace("X", ".") }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-secondary small">Sin productos publicados</p>
+                    {% endif %}
+
+                    <a href="{{ url_for('companies.view_company', company_id=data.company.id) }}" class="btn btn-outline-custom w-100">
+                        Ver empresa y productos →
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Paginación -->
+    {% if pagination.pages > 1 %}
+    <nav aria-label="Paginación empresas" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if pagination.has_prev %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('companies.list_companies', page=pagination.prev_num, q=search_query) }}">Anterior</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+            {% endif %}
+            {% for page_num in pagination.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == pagination.page %}
+                    <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                    {% else %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('companies.list_companies', page=page_num, q=search_query) }}">{{ page_num }}</a></li>
+                    {% endif %}
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('companies.list_companies', page=pagination.next_num, q=search_query) }}">Siguiente</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-5">
+        <div class="display-1 mb-3">🏢</div>
+        <h3 class="fw-bold text-main">No hay empresas</h3>
+        <p class="text-secondary">Sé el primero en registrar tu empresa.</p>
+        {% if current_user.is_authenticated and current_user.is_empresa %}
+        <a href="{{ url_for('companies.my_company') }}" class="btn btn-primary mt-3">Configurar mi empresa</a>
+        {% else %}
+        <a href="{{ url_for('auth.register_choice') }}" class="btn btn-primary mt-3">Crear cuenta empresa</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

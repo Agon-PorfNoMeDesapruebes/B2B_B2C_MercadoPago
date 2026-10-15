@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}429 - Demasiadas Solicitudes{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 text-center">
+            <div class="card tarjeta_caracteristica shadow-sm p-5">
+                <div class="display-1 mb-4">⏱️</div>
+                <h1 class="fw-bold text-main mb-3">Demasiadas Solicitudes</h1>
+                <p class="text-secondary mb-4">Hiciste muchas solicitudes en poco tiempo. Esperá un momento.</p>
+                {% if retry_after %}
+                <p class="text-secondary mb-4">Podés reintentar en <strong>{{ retry_after }}</strong> segundos.</p>
+                {% endif %}
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <a href="{{ url_for('main.index') }}" class="btn btn-primary">Ir al Inicio</a>
+                    <button onclick="location.reload()" class="btn btn-outline-custom">Reintentar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

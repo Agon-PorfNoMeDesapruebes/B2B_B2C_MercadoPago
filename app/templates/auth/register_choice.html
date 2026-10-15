@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}¿Empresa o Cliente? - B2B_B2C{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <h1 class="fw-bold text-main display-4">¿Cómo querés usar B2B_B2C?</h1>
+                <p class="lead text-secondary">Elegí tu tipo de cuenta. No se puede cambiar después.</p>
+            </div>
+
+            <div class="row g-4">
+                <!-- Empresa -->
+                <div class="col-md-6">
+                    <div class="card tarjeta_caracteristica h-100 border-0 shadow-lg">
+                        <div class="card-body p-5 text-center">
+                            <div class="display-1 mb-4">🏢</div>
+                            <h3 class="fw-bold text-main mb-3">Soy Empresa</h3>
+                            <p class="text-secondary mb-4">Vendo productos. Tengo mi propio sector, publico items, gestiono stock y veo mis ventas.</p>
+                            <ul class="list-unstyled text-start text-secondary small mb-4">
+                                <li class="mb-2">✅ Publicar y editar mis productos</li>
+                                <li class="mb-2">✅ Ver mis ventas y cobros</li>
+                                <li class="mb-2">✅ Comprar a otras empresas (mín. 50 u.)</li>
+                                <li class="mb-2">✅ Datos fiscales (CUIT, razón social)</li>
+                            </ul>
+                            <a href="{{ url_for('auth.register_empresa') }}" class="btn btn-primary btn-lg w-100">Registrar mi empresa</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cliente -->
+                <div class="col-md-6">
+                    <div class="card tarjeta_caracteristica h-100 border-0 shadow-lg">
+                        <div class="card-body p-5 text-center">
+                            <div class="display-1 mb-4">🛍️</div>
+                            <h3 class="fw-bold text-main mb-3">Soy Cliente</h3>
+                            <p class="text-secondary mb-4">Compro productos. Navego catálogos de todas las empresas, agrego al carrito y pago.</p>
+                            <ul class="list-unstyled text-start text-secondary small mb-4">
+                                <li class="mb-2">✅ Comprar sin mínimo de cantidad</li>
+                                <li class="mb-2">✅ Ver historial de mis compras</li>
+                                <li class="mb-2">✅ Pagar con Mercado Pago</li>
+                                <li class="mb-2">✅ Registro simple (usuario, email, pass)</li>
+                            </ul>
+                            <a href="{{ url_for('auth.register_cliente') }}" class="btn btn-outline-custom btn-lg w-100">Crear cuenta cliente</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5">
+                <p class="text-secondary">¿Ya tenés cuenta? <a href="{{ url_for('auth.login') }}" class="text-main fw-bold">Iniciar sesión</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

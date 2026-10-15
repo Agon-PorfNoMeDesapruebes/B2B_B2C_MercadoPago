@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}403 - Acceso Denegado{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 text-center">
+            <div class="card tarjeta_caracteristica shadow-sm p-5">
+                <div class="display-1 mb-4">🚫</div>
+                <h1 class="fw-bold text-main mb-3">Acceso Denegado</h1>
+                <p class="text-secondary mb-4">No tenés permisos para acceder a esta página.</p>
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Ir a mi Panel</a>
+                    <a href="{{ url_for('main.index') }}" class="btn btn-outline-custom">Ir al Inicio</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

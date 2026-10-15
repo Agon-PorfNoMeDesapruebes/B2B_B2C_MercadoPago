@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Mi Empresa - B2B_B2C{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <h1 class="fw-bold text-main mb-0">Mi Empresa</h1>
+        <a href="{{ url_for('companies.view_company', company_id=company.id) }}" class="btn btn-outline-custom">👁️ Ver como visitante</a>
+    </div>
+
+    <ul class="nav nav-tabs mb-4" role="tablist">
+        <li class="nav-item"><a class="nav-link active" href="#datos" data-bs-toggle="tab">📋 Datos de la Empresa</a></li>
+        <li class="nav-item"><a class="nav-link" href="#productos" data-bs-toggle="tab">📦 Productos ({{ products.total }})</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Tab Datos -->
+        <div class="tab-pane fade show active" id="datos" role="tabpanel">
+            <div class="card tarjeta_caracteristica shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-main mb-4">Información Fiscal y Comercial</h5>
+                    <form method="POST" action="" novalidate>
+                        {{ form.hidden_tag() }}
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">{{ form.name.label.text }}</label>
+                                {{ form.name(class="form-control control_formulario_personalizado") }}
+                                {% for error in form.name.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">{{ form.tax_id.label.text }}</label>
+                                {{ form.tax_id(class="form-control control_formulario_personalizado", placeholder="20-12345678-9") }}
+                                {% for error in form.tax_id.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">{{ form.description.label.text }}</label>
+                                {{ form.description(class="form-control control_formulario_personalizado", rows="3") }}
+                                {% for error in form.description.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">{{ form.logo_url.label.text }}</label>
+                                {{ form.logo_url(class="form-control control_formulario_personalizado", placeholder="https://ejemplo.com/logo.png") }}
+                                {% for error in form.logo_url.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                                <div class="form-text">URL pública de imagen (opcional)</div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4" style="max-width: 300px;">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Productos -->
+        <div class="tab-pane fade" id="productos" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h5 class="fw-bold text-main mb-0">Mis Productos</h5>
+                <a href="{{ url_for('companies.new_product') }}" class="btn btn-primary">➕ Nuevo Producto</a>
+            </div>
+
+            {% if products.items %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-center">Stock</th>
+                            <th class="text-end">Precio</th>
+                            <th class="text-center">Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products.items %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if product.image_url %}
+                                    <img src="{{ product.image_url }}" alt="" class="rounded" style="width: 48px; height: 48px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">📦</div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-medium">{{ product.name }}</div>
+                                        <small class="text-secondary text-truncate d-block" style="max-width: 250px;">{{ product.description or 'Sin descripción' }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge {% if product.stock == 0 %}bg-danger{% elif product.stock < 10 %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                    {{ product.stock }}
+                                </span>
+                            </td>
+                            <td class="text-end fw-bold">${{ "{:,.2f}".format(product.price).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+                            <td class="text-center">
+                                {% if product.is_active %}
+                                <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ url_for('companies.edit_product', product_id=product.id) }}" class="btn btn-outline-primary" title="Editar">✏️</a>
+                                    <form action="{{ url_for('companies.toggle_product', product_id=product.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn {% if product.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}" title="{% if product.is_active %}Desactivar{% else %}Activar{% endif %}">
+                                            {% if product.is_active %}👁️‍🗨️{% else %}✅{% endif %}
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            {% if products.pages > 1 %}
+            <nav aria-label="Paginación productos">
+                <ul class="pagination justify-content-center">
+                    {% if products.has_prev %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('companies.my_company', page=products.prev_num) }}">Anterior</a></li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+                    {% endif %}
+                    {% for page_num in products.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == products.page %}
+                            <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                            {% else %}
+                            <li class="page-item"><a class="page-link" href="{{ url_for('companies.my_company', page=page_num) }}">{{ page_num }}</a></li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if products.has_next %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('companies.my_company', page=products.next_num) }}">Siguiente</a></li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <div class="display-1 mb-3">📦</div>
+                <h4 class="fw-bold text-main">No tenés productos aún</h4>
+                <p class="text-secondary">Publicá tu primer producto para empezar a vender.</p>
+                <a href="{{ url_for('companies.new_product') }}" class="btn btn-primary mt-3">Crear producto</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

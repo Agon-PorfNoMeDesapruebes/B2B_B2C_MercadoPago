@@ -1,0 +1,18 @@
+# Secretos
+.env
+.env.*
+!.env.example
+mp_test_sellers.json
+
+# Entorno y caché de Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Datos locales y logs
+instance/
+logs/
+*.db
+*.sqlite3

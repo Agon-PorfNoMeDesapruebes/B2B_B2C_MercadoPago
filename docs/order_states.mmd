@@ -1,0 +1,27 @@
+```mermaid
+stateDiagram-v2
+    [*] --> PENDIENTE : Crear pedido (reserva stock atómica)
+    PENDIENTE --> PAGADO : Webhook MP approved
+    PENDIENTE --> RECHAZADO : Webhook MP rejected → devuelve stock
+    PENDIENTE --> CANCELADO : Comprador cancela → devuelve stock
+    PENDIENTE --> EXPIRADO : 30 min vencido → devuelve stock
+    PAGADO --> RECHAZADO : Webhook refunded/charged_back → devuelve stock
+
+    note right of PENDIENTE
+        Stock reservado atómicamente
+        Expira en 30 min
+        No permite doble pago
+    end note
+
+    note right of PAGADO
+        Stock ya descontado
+        Solo via webhook approved
+        Plan B: botón "Verificar pago"
+    end note
+
+    note right of RECHAZADO
+        Stock devuelto automáticamente
+        Incluye: rejected, refunded, charged_back
+        status_detail traducido a mensaje claro
+    end note
+```

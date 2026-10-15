@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - B2B_B2C{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card tarjeta_caracteristica shadow-sm text-center p-5">
+                <div class="display-1 mb-4">
+                    {% if mp_status == 'approved' %}✅
+                    {% elif mp_status == 'pending' %}⏳
+                    {% else %}❌{% endif %}
+                </div>
+                <h2 class="fw-bold text-main mb-3">{{ title }}</h2>
+                <p class="text-secondary mb-4">{{ message }}</p>
+
+                {% if order %}
+                <div class="card bg-light border-0 mb-4">
+                    <div class="card-body">
+                        <h5 class="fw-bold text-main mb-2">Pedido #{{ order.id }}</h5>
+                        <div class="row g-2 text-secondary small">
+                            <div class="col-6 text-end fw-medium">Total:</div>
+                            <div class="col-6 text-start fw-bold text-primary">${{ "{:,.2f}".format(order.total).replace(",", "X").replace(".", ",").replace("X", ".") }}</div>
+                            <div class="col-6 text-end fw-medium">Estado actual:</div>
+                            <div class="col-6 text-start">
+                                <span class="etiqueta_estado etiqueta_{{ order.status.value.lower() }}">{{ order.status.value }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('orders.order_detail', order_id=order.id) }}" class="btn btn-primary btn-lg">Ver detalle del pedido</a>
+                    {% if order.status == 'PENDIENTE' %}
+                    <a href="{{ url_for('payments.checkout', order_id=order.id) }}" class="btn btn-outline-primary btn-lg">Reintentar pago</a>
+                    {% endif %}
+                </div>
+                {% else %}
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-lg">Ir a mi Panel</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
